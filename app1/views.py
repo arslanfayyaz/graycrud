@@ -1,4 +1,5 @@
 from rest_framework.views import APIView
+from django.db.models import Count, Max, Min, Sum
 from rest_framework.response import Response
 from rest_framework import status
 from .models import University, Teacher, Song, Student, StudentProfile
@@ -128,16 +129,62 @@ class SongView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, pk=None, format=None):
-        id = pk
-        if id is not None:
-            song = Song.objects.get(id=id)
-            serializer = SongSerializer(song)
-            return Response(serializer.data)
+    def get(self, request, format=None):
+        method = request.query_params.get('method')
 
-        songs = Song.objects.all()
-        serializer = SongSerializer(songs, many=True)
-        return Response(serializer.data)
+        if method == 'in_bulk':
+            primary_keys = [1, 2, 3]
+            songs_dict = Song.objects.in_bulk(primary_keys)
+            serialized_data = SongSerializer(songs_dict.values(), many=True)
+            return Response(serialized_data.data)
+
+        elif method == 'iterator':
+            songs = Song.objects.iterator()
+            serialized_data = SongSerializer(songs, many=True).data
+            return Response({'message': 'Using iterator()', 'data': serialized_data})
+
+        elif method == 'latest':
+            latest_song = Song.objects.latest('release_date')
+            serializer = SongSerializer(latest_song)
+            return Response({'message': 'Using latest()', 'data': serializer.data})
+
+        elif method == 'earliest':
+            earliest_song = Song.objects.earliest('release_date')
+            serializer = SongSerializer(earliest_song)
+            return Response({'message': 'Using earliest()', 'data': serializer.data})
+
+        elif method == 'first':
+            first_song = Song.objects.first()
+            serializer = SongSerializer(first_song)
+            return Response({'message': 'Using first()', 'data': serializer.data})
+
+        elif method == 'last':
+            last_song = Song.objects.last()
+            serializer = SongSerializer(last_song)
+            return Response({'message': 'Using last()', 'data': serializer.data})
+
+        elif method == 'aggregate':
+            aggregation_data = Song.objects.aggregate(
+                song_count=Count('id'),
+                max_duration=Max('release_date'),
+                min_duration=Min('release_date')
+            )
+            return Response({'message': 'Using aggregate()', 'data': aggregation_data})
+
+        elif method == 'in_bulk':
+            songs_dict = Song.objects.in_bulk()
+            serialized_data = SongSerializer(songs_dict.values, many=True)
+            return Response(serialized_data.data)
+
+        elif method == 'reverse':
+            song_desc = Song.objects.order_by('-release_date')
+            reverse_songs = song_desc.reverse()
+            serialized_data = SongSerializer(reverse_songs, many=True)
+            return Response(serialized_data.data)
+        else:
+            songs = Song.objects.all()
+            serializer = SongSerializer(songs, many=True)
+            return Response(serializer.data)
 
     def post(self, request):
         serializer = SongSerializer(data=request.data)
