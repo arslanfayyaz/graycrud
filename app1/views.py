@@ -2,6 +2,7 @@ from rest_framework.views import APIView
 from django.db.models import Count, Max, Min, Sum
 from rest_framework.response import Response
 from rest_framework import status
+from datetime import date, datetime, time
 from .models import University, Teacher, Song, Student, StudentProfile
 from .serializers import UniversitySerializer, TeacherSerializer, SongSerializer, StudentSerializer, StudentProfileSerializer
 from rest_framework.permissions import IsAuthenticated
@@ -181,6 +182,123 @@ class SongView(APIView):
             reverse_songs = song_desc.reverse()
             serialized_data = SongSerializer(reverse_songs, many=True)
             return Response(serialized_data.data)
+
+        elif method == 'contains':
+            songs = Song.objects.filter(song_name__contains='mray mehboob')
+            serializer = SongSerializer(songs, many=True)
+            return Response(serializer.data)
+
+        elif method == 'icontains':
+            songs = Song.objects.filter(song_name__icontains='MRAY MEHBOOB')
+            serializer = SongSerializer(songs, many=True)
+            return Response(serializer.data)
+
+        elif method == 'date':
+            target_date = datetime(2022, 5, 4).date()
+            songs = Song.objects.filter(release_date=target_date)
+            serializer = SongSerializer(songs, many=True)
+            return Response(serializer.data)
+
+        elif method == 'day':
+            songs = Song.objects.filter(release_date__day=7)
+            serializer = SongSerializer(songs, many=True)
+            return Response(serializer.data)
+
+        elif method == 'endswith':
+            songs = Song.objects.filter(song_name__endswith='you')
+            serializer = SongSerializer(songs, many=True)
+            return Response(serializer.data)
+
+        elif method == 'iendswith':
+            songs = Song.objects.filter(song_name__iendswith='You')
+            serializer = SongSerializer(songs, many=True)
+            return Response(serializer.data)
+
+        elif method == 'exact':
+            songs = Song.objects.filter(artist__exact='Adele')
+            serializer = SongSerializer(songs, many=True)
+            return Response(serializer.data)
+
+        elif method == 'iexact':
+            songs = Song.objects.filter(artist__iexact='adele')
+            serializer = SongSerializer(songs, many=True)
+            return Response(serializer.data)
+
+        elif method == 'in':
+            artists = ['atif', 'mehroz']
+            songs = Song.objects.filter(artist__in=artists)
+            serializer = SongSerializer(songs, many=True)
+            return Response(serializer.data)
+
+        elif method == 'isnull':
+            songs = Song.objects.filter(artist__isnull=True)
+            serializer = SongSerializer(songs, many=True)
+            return Response(serializer.data)
+
+        elif method == 'gt':
+            target_date = date(2021, 1, 1)
+            songs = Song.objects.filter(release_date__gt=target_date)
+            serializer = SongSerializer(songs, many=True)
+            return Response(serializer.data)
+
+        elif method == 'gte':
+            target_date = date(2021, 1, 1)
+            songs = Song.objects.filter(release_date__gte=target_date)
+            serializer = SongSerializer(songs, many=True)
+            return Response(serializer.data)
+
+        elif method == 'hour':
+            songs = Song.objects.filter(release_date__hour=12)
+            serializer = SongSerializer(songs, many=True)
+            return Response(serializer.data)
+
+        elif method == 'time':
+            target_time = time(12, 0, 0)
+            songs = Song.objects.filter(release_date__time=target_time)
+            serializer = SongSerializer(songs, many=True)
+            return Response(serializer.data)
+
+        elif method == 'week':
+            target_week = 6
+            songs = Song.objects.filter(release_date__week=target_week)
+            serializer = SongSerializer(songs, many=True)
+            return Response(serializer.data)
+
+        elif method == 'week_day':
+            target_week_day = 2  # Monday = 0, Sunday = 6
+            songs = Song.objects.filter(release_date__week_day=target_week_day)
+            serializer = SongSerializer(songs, many=True)
+            return Response(serializer.data)
+
+        elif method == 'iso_week_day':
+            target_iso_week_day = 5  # Monday = 1, Sunday = 7
+            songs = Song.objects.filter(release_date__iso_week_day=target_iso_week_day)
+            serializer = SongSerializer(songs, many=True)
+            return Response(serializer.data)
+
+        elif method == 'year':
+            target_year = 2023
+            songs = Song.objects.filter(release_date__year=target_year)
+            serializer = SongSerializer(songs, many=True)
+            return Response(serializer.data)
+
+        elif method == 'iso_year':
+            target_iso_year = 2023
+            songs = Song.objects.filter(release_date__iso_year=target_iso_year)
+            serializer = SongSerializer(songs, many=True)
+            return Response(serializer.data)
+
+        elif method == 'regex':
+            target_pattern = r'^atif.*'
+            songs = Song.objects.filter(song_name__regex=target_pattern)
+            serializer = SongSerializer(songs, many=True)
+            return Response(serializer.data)
+
+        elif method == 'iregex':
+            target_pattern = r'^rock.*'
+            songs = Song.objects.filter(song_name__iregex=target_pattern)
+            serializer = SongSerializer(songs, many=True)
+            return Response(serializer.data)
         else:
             songs = Song.objects.all()
             serializer = SongSerializer(songs, many=True)
